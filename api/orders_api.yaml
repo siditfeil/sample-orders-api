@@ -1,0 +1,221 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Order
+  x-ibm-name: order
+basePath: /order
+x-ibm-configuration:
+  properties:
+    target-url:
+      value: http://api.me.uk:12345/order/{order-number}
+      description: URL of the proxy policy
+      encoded: false
+  cors:
+    enabled: true
+  gateway: datapower-api-gateway
+  type: rest
+  phase: realized
+  enforced: true
+  testable: true
+  assembly:
+    execute:
+      - invoke:
+          title: invoke
+          version: 2.0.0
+          verb: keep
+          target-url: $(target-url)
+          follow-redirects: false
+          timeout: 60
+          parameter-control:
+            type: blocklist
+            values: []
+          header-control:
+            type: blocklist
+            values: []
+          inject-proxy-headers: true
+          persistent-connection: true
+          backend-type: json
+          output: order
+      - parse:
+          version: 2.1.0
+          title: parse
+          parse-settings-reference:
+            default: apic-default-parsesettings
+          input: order
+          output: order
+      - map:
+          version: 2.0.0
+          title: map
+          inputs:
+            input:
+              schema:
+                type: object
+                properties:
+                  delivery_method:
+                    type: string
+                    name: delivery_method
+                  tracking_reference:
+                    type: string
+                    name: tracking_reference
+              variable: order.body
+          outputs:
+            output:
+              schema:
+                type: object
+                properties:
+                  shipper:
+                    type: string
+                    name: shipper
+                  reference:
+                    type: string
+                    name: reference
+              variable: message.body
+              content: application/json
+          actions:
+            - set: output.shipper
+              from: input.delivery_method
+            - set: output.reference
+              from: input.tracking_reference
+      - invoke:
+          version: 2.2.0
+          title: 'lambda: Tracking'
+          backend-type: detect
+          header-control:
+            type: blocklist
+            values: []
+          parameter-control:
+            type: allowlist
+            values: []
+          http-version: HTTP/1.1
+          timeout: 60
+          verb: POST
+          chunked-uploads: true
+          persistent-connection: true
+          cache-response: protocol
+          cache-ttl: 900
+          stop-on-error: []
+          websocket-upgrade: false
+          target-url: >-
+            https://plgej7e2skungmxzjakprvhe340qkrkl.lambda-url.us-east-1.on.aws/
+          output: tracking
+          graphql-send-type: detect
+      - map:
+          version: 2.0.0
+          title: map
+          inputs:
+            tracking:
+              schema:
+                type: object
+                properties:
+                  trackResponse:
+                    type: object
+                    name: trackResponse
+                    properties:
+                      shipment:
+                        type: object
+                        name: shipment
+                        properties:
+                          package:
+                            type: object
+                            name: package
+                            properties:
+                              activity:
+                                type: array
+                                name: activity
+                                items:
+                                  type: object
+                                  properties:
+                                    status:
+                                      type: object
+                                      name: status
+              variable: tracking.body
+            order:
+              schema:
+                type: object
+                properties:
+                  order_number:
+                    type: string
+                    name: order_number
+                  created_at:
+                    type: string
+                    name: created_at
+                  shipped_at:
+                    type: string
+                    name: shipped_at
+                  status:
+                    type: string
+                    name: status
+                  tracking_reference:
+                    type: string
+                    name: tracking_reference
+              variable: order.body
+          outputs:
+            output:
+              schema:
+                type: object
+                properties:
+                  order_number:
+                    type: string
+                    name: order_number
+                  status:
+                    type: string
+                    name: status
+                  shipped_at:
+                    type: string
+                    name: shipped_at
+                  tracking_reference:
+                    type: string
+                    name: tracking_reference
+                  tracking_status:
+                    type: object
+                    name: tracking_status
+                  created_at:
+                    type: string
+                    name: created_at
+              variable: message.body
+          actions:
+            - set: output.order_number
+              from: order.order_number
+            - set: output.tracking_status
+              from: tracking.trackResponse.shipment.package.activity.status
+            - set: output.shipped_at
+              from: order.shipped_at
+            - set: output.tracking_reference
+              from: order.tracking_reference
+            - set: output.status
+              from: order.status
+            - set: output.created_at
+              from: order.created_at
+    finally: []
+  activity-log:
+    enabled: true
+    success-content: activity
+    error-content: payload
+paths:
+  /: {}
+  /{order-number}:
+    parameters:
+      - name: order-number
+        required: true
+        in: path
+        type: string
+    get:
+      responses:
+        '200':
+          description: success
+          schema:
+            type: string
+securityDefinitions:
+  clientID:
+    type: apiKey
+    in: header
+    name: X-IBM-Client-Id
+security:
+  - clientID: []
+schemes:
+  - https
+responses: {}
+consumes:
+  - application/json
+produces:
+  - application/json

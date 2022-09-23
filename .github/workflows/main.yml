@@ -1,0 +1,17 @@
+on: [push]
+
+jobs:
+  apic-deploy-test:
+    runs-on: ubuntu-latest
+    name: Test api deployment
+    steps:
+    - uses: actions/checkout@v2
+    - uses: rickymoorhouse/apic-deploy@main
+      with:
+        manager-host: api-manager.us-east-a.apiconnect.automation.ibm.com
+        api-host: platform-api.us-east-a.apiconnect.automation.ibm.com
+        provider-org: 'demo'
+        catalog: 'sandbox'
+        apikey: ${{ secrets.apikey }}
+        product-file: 'product.yaml'
+
