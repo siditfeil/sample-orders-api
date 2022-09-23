@@ -15,7 +15,6 @@ plans:
       order1.0.0: {}
 apis:
   order1.0.0:
-    name: order:1.0.0
     $ref: api/orders_api.yaml
 visibility:
   view:
