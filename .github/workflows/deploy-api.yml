@@ -1,0 +1,31 @@
+on: [push]
+
+jobs:
+  apic-deploy-sandbox:
+    runs-on: ubuntu-latest
+    name: Deploy API
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy API to Sandbox
+      uses: ibm-apiconnect/actions@main
+      with:
+        manager-host: api-manager.us-east-a.apiconnect.automation.ibm.com
+        api-host: platform-api.us-east-a.apiconnect.automation.ibm.com
+        provider-org: 'demo'
+        catalog: 'sandbox'
+        apikey: ${{ secrets.apikey }}
+        product-file: 'product.yaml'
+
+    - name: Test API
+      run: curl https://hub.us-east-a.apiconnect.automation.ibm.com/apitest/api/rest/v1/2543f06c-40c3-4e2b-82e4-43a4bc6d21e7993/tests/run  -H "X-API-Key: a28d028c-3abf-4d11-ac69-89ab4f6d844f" -H "X-API-Secret: 2927f1f33e1719661e8769100b4c3101934f89f7fd378455ba76b95a881047ba" -H "Content-Type: application/json"     -d '{"options": { "allAssertions": true,"JUnitFormat": false}}' | grep passed
+
+    - name: Deploy API to Showcase
+      uses: ibm-apiconnect/actions@main
+      with:
+        manager-host: api-manager.us-east-a.apiconnect.automation.ibm.com
+        api-host: platform-api.us-east-a.apiconnect.automation.ibm.com
+        provider-org: 'demo'
+        catalog: 'showcase'
+        apikey: ${{ secrets.apikey }}
+        product-file: 'product.yaml'
+
