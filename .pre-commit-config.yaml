@@ -2,6 +2,6 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/ibm-apiconnect/pre-commit
-    rev: 'main'
+    rev: 'v1'
     hooks:
     -   id: validate-product
