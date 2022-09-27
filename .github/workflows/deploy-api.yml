@@ -17,7 +17,26 @@ jobs:
         product-file: 'product.yaml'
 
     - name: Test API
-      run: curl https://hub.us-east-a.apiconnect.automation.ibm.com/apitest/api/rest/v1/2543f06c-40c3-4e2b-82e4-43a4bc6d21e7993/tests/run  -H "X-API-Key: a28d028c-3abf-4d11-ac69-89ab4f6d844f" -H "X-API-Secret: 2927f1f33e1719661e8769100b4c3101934f89f7fd378455ba76b95a881047ba" -H "Content-Type: application/json"     -d '{"options": { "allAssertions": true,"JUnitFormat": false}}' 
+      shell: python
+      run: |
+        import requests
+        webhook_url='https://hub.us-east-a.apiconnect.automation.ibm.com/apitest/api/rest/v1/2543f06c-40c3-4e2b-82e4-43a4bc6d21e7993/tests/run'
+        r = requests.post(
+            url=webhook_url,
+            headers={
+              "X-API-Key":"a28d028c-3abf-4d11-ac69-89ab4f6d844f",
+              "X-API-Secret":"2927f1f33e1719661e8769100b4c3101934f89f7fd378455ba76b95a881047ba",
+              "Content-Type":"application/json"
+            },
+            data='{"options": { "allAssertions": true,"JUnitFormat": false}}'
+        )
+        results = r.json()
+        return_code = 0
+        for result in results:
+          print("Test: {testName}\tResult: {status}".format(**result))
+          if result['status'] != 'passed':
+            return_code += 1
+        exit(return_code)
 
     - name: Deploy API to Showcase
       uses: ibm-apiconnect/actions@main
