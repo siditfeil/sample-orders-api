@@ -144,7 +144,7 @@ x-ibm-configuration:
                     name: shipped_at
                   status:
                     type: string
-                    name: status
+                    name: stats
                   tracking_reference:
                     type: string
                     name: tracking_reference

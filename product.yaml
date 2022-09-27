@@ -13,9 +13,12 @@ plans:
         value: 100/1hour
     apis:
       order1.0.0: {}
+      stock1.0.0: {}
 apis:
   order1.0.0:
     $ref: api/orders_api.yaml
+  stock1.0.0:
+    $ref: api/stock.yaml
 visibility:
   view:
     type: public
