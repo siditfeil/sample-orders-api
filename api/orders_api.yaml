@@ -3,7 +3,7 @@ info:
   version: 1.0.0
   title: Order
   x-ibm-name: order
-  description: View and track your orders
+  description: View and track your orders and deliveries
 basePath: /order
 x-ibm-configuration:
   properties:
